@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'game_page.dart';
 
 void main() {
   runApp(MyApp());
@@ -8,7 +9,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Jeu 2048',
+      title: "Jeu 2048",
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
@@ -28,7 +29,7 @@ class HomePage extends StatelessWidget {
           children: <Widget>[
             // Logo au lieu du titre
             Image.asset(
-              'assets/images/logo.png',
+              "assets/images/logo.png",
               width: 150, // Taille du logo
               height: 150,
             ),
@@ -42,7 +43,7 @@ class HomePage extends StatelessWidget {
                 );
               },
               child: Text(
-                'Commencer une partie',
+                "Commencer une partie",
                 style: TextStyle(fontSize: 18, color: Colors.white),
               ),
               style: ElevatedButton.styleFrom(
@@ -51,23 +52,6 @@ class HomePage extends StatelessWidget {
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class GamePage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Partie en cours'),
-      ),
-      body: Center(
-        child: Text(
-          'C\'est ici que la grille 2048 sera affichée',
-          style: TextStyle(fontSize: 18),
         ),
       ),
     );
