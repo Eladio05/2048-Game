@@ -127,6 +127,27 @@ class _GamePageState extends State<GamePage> {
               ),
             ),
           ),
+          // Ajout du score avec un carré noir et des bords arrondis
+          Container(
+            padding: EdgeInsets.symmetric(vertical: 10),
+            child: Center(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.black,
+                  borderRadius: BorderRadius.circular(15), // Bord arrondi
+                ),
+                padding: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+                child: Text(
+                  'Score: ${_game.score}',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+          ),
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Column(
