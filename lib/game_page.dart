@@ -1,85 +1,8 @@
 import 'package:flutter/material.dart';
-import 'game.dart';
+import 'package:provider/provider.dart';
+import 'game_provider.dart';
 
-class GamePage extends StatefulWidget {
-  @override
-  _GamePageState createState() => _GamePageState();
-}
-
-class _GamePageState extends State<GamePage> {
-  late Game _game;
-
-  @override
-  void initState() {
-    super.initState();
-    _game = Game(); // Initialiser la logique du jeu
-  }
-
-  // Fonction pour gérer les mouvements et mettre à jour l'interface
-  void _handleMove(String direction) {
-    setState(() {
-      _game.move(direction);
-    });
-    if (_game.isGameOver()) {
-      _showGameOverDialog();
-    }
-  }
-
-  // Afficher une boîte de dialogue si le jeu est terminé
-  void _showGameOverDialog() {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text('Partie terminée'),
-          content: Text('Voulez-vous recommencer ?'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                setState(() {
-                  _game = Game(); // Réinitialiser la partie
-                });
-              },
-              child: Text('Oui'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text('Non'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  // Méthode pour détecter la direction du glissement
-  void _onPanEnd(DragEndDetails details) {
-    final velocity = details.velocity.pixelsPerSecond;
-
-    if (velocity.dx.abs() > velocity.dy.abs()) {
-      // Mouvement horizontal
-      if (velocity.dx > 0) {
-        // Vers la droite
-        _handleMove('right');
-      } else {
-        // Vers la gauche
-        _handleMove('left');
-      }
-    } else {
-      // Mouvement vertical
-      if (velocity.dy > 0) {
-        // Vers le bas
-        _handleMove('down');
-      } else {
-        // Vers le haut
-        _handleMove('up');
-      }
-    }
-  }
-
+class GamePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -87,63 +10,119 @@ class _GamePageState extends State<GamePage> {
       appBar: AppBar(
         backgroundColor: Color(0xFFFFB06B),
         title: Text("Partie en cours"),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.star),
+            onPressed: () {
+              Provider.of<GameProvider>(context, listen: false).simulateVictory();
+              Future.delayed(Duration.zero, () {
+                _showVictoryDialog(context, Provider.of<GameProvider>(context, listen: false));
+              });
+            },
+          ),
+          IconButton(
+            icon: Icon(Icons.warning),
+            onPressed: () {
+              Provider.of<GameProvider>(context, listen: false).simulateDefeat();
+              Future.delayed(Duration.zero, () {
+                _showDefeatDialog(context, Provider.of<GameProvider>(context, listen: false));
+              });
+            },
+          ),
+        ],
       ),
       body: Column(
         children: [
           Expanded(
             child: GestureDetector(
-              onPanEnd: _onPanEnd, // Utiliser onPanEnd pour détecter les gestes
-              child: GridView.builder(
-                physics: NeverScrollableScrollPhysics(), // Désactiver le défilement
-                padding: EdgeInsets.all(10),
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 4, // Grille 4x4
-                  crossAxisSpacing: 10,
-                  mainAxisSpacing: 10,
-                ),
-                itemCount: 16, // 16 tuiles dans une grille 4x4
-                itemBuilder: (context, index) {
-                  int row = index ~/ 4;
-                  int col = index % 4;
-                  int value = _game.board[row][col];
+              onPanEnd: (details) {
+                final velocity = details.velocity.pixelsPerSecond;
+                final gameProvider = Provider.of<GameProvider>(context, listen: false);
 
-                  return Container(
-                    decoration: BoxDecoration(
-                      color: _getTileColor(value),
-                      borderRadius: BorderRadius.circular(8),
+                if (velocity.dx.abs() > velocity.dy.abs()) {
+                  if (velocity.dx > 0) {
+                    gameProvider.move('right');
+                  } else {
+                    gameProvider.move('left');
+                  }
+                } else {
+                  if (velocity.dy > 0) {
+                    gameProvider.move('down');
+                  } else {
+                    gameProvider.move('up');
+                  }
+                }
+
+                if (gameProvider.hasWon) {
+                  Future.delayed(Duration.zero, () {
+                    _showVictoryDialog(context, gameProvider);
+                  });
+                }
+
+                if (gameProvider.isGameOver) {
+                  Future.delayed(Duration.zero, () {
+                    _showDefeatDialog(context, gameProvider);
+                  });
+                }
+              },
+              child: Consumer<GameProvider>(
+                builder: (context, gameProvider, child) {
+                  return GridView.builder(
+                    physics: NeverScrollableScrollPhysics(),
+                    padding: EdgeInsets.all(10),
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 4,
+                      crossAxisSpacing: 10,
+                      mainAxisSpacing: 10,
                     ),
-                    child: Center(
-                      child: Text(
-                        value == 0 ? '' : '$value',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                    itemCount: 16,
+                    itemBuilder: (context, index) {
+                      int row = index ~/ 4;
+                      int col = index % 4;
+                      int value = gameProvider.board[row][col];
+
+                      return Container(
+                        decoration: BoxDecoration(
+                          color: _getTileColor(value),
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                      ),
-                    ),
+                        child: Center(
+                          child: Text(
+                            value == 0 ? '' : '$value',
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
                   );
                 },
               ),
             ),
           ),
-          // Ajout du score avec un carré noir et des bords arrondis
           Container(
             padding: EdgeInsets.symmetric(vertical: 10),
             child: Center(
               child: Container(
                 decoration: BoxDecoration(
                   color: Colors.black,
-                  borderRadius: BorderRadius.circular(15), // Bord arrondi
+                  borderRadius: BorderRadius.circular(15),
                 ),
                 padding: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-                child: Text(
-                  'Score: ${_game.score}',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
+                child: Consumer<GameProvider>(
+                  builder: (context, gameProvider, child) {
+                    return Text(
+                      'Score: ${gameProvider.score}',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    );
+                  },
                 ),
               ),
             ),
@@ -156,7 +135,9 @@ class _GamePageState extends State<GamePage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     ElevatedButton(
-                      onPressed: () => _handleMove('up'),
+                      onPressed: () {
+                        Provider.of<GameProvider>(context, listen: false).move('up');
+                      },
                       child: Icon(Icons.arrow_upward),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Color(0xFF997C64),
@@ -168,7 +149,9 @@ class _GamePageState extends State<GamePage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     ElevatedButton(
-                      onPressed: () => _handleMove('left'),
+                      onPressed: () {
+                        Provider.of<GameProvider>(context, listen: false).move('left');
+                      },
                       child: Icon(Icons.arrow_back),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Color(0xFF997C64),
@@ -176,7 +159,9 @@ class _GamePageState extends State<GamePage> {
                     ),
                     SizedBox(width: 10),
                     ElevatedButton(
-                      onPressed: () => _handleMove('right'),
+                      onPressed: () {
+                        Provider.of<GameProvider>(context, listen: false).move('right');
+                      },
                       child: Icon(Icons.arrow_forward),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Color(0xFF997C64),
@@ -188,7 +173,9 @@ class _GamePageState extends State<GamePage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     ElevatedButton(
-                      onPressed: () => _handleMove('down'),
+                      onPressed: () {
+                        Provider.of<GameProvider>(context, listen: false).move('down');
+                      },
                       child: Icon(Icons.arrow_downward),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Color(0xFF997C64),
@@ -199,22 +186,134 @@ class _GamePageState extends State<GamePage> {
               ],
             ),
           ),
-          SizedBox(height: 20),
-          ElevatedButton(
-            onPressed: () {
-              setState(() {
-                _game = Game(); // Réinitialiser la partie
-              });
-            },
-            child: Text("Nouvelle Partie"),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Color(0xFF997C64),
-              padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: ElevatedButton(
+              onPressed: () => Provider.of<GameProvider>(context, listen: false).resetGame(),
+              child: Text("Nouvelle Partie"),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Color(0xFF997C64),
+                padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+              ),
             ),
           ),
           SizedBox(height: 20),
         ],
       ),
+    );
+  }
+
+  // Méthode pour afficher la popup de victoire
+  void _showVictoryDialog(BuildContext context, GameProvider gameProvider) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Colors.black, // Fond noir
+          title: Center(
+            child: Text(
+              "Victoire !",
+              style: TextStyle(color: Colors.white), // Texte blanc
+            ),
+          ),
+          content: Text(
+            "Votre score a atteint 2048 !",
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.white), // Texte blanc
+          ),
+          actions: [
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextButton(
+                  onPressed: () {
+                    gameProvider.continueGame(); // Continuer la partie
+                    Navigator.of(context).pop(); // Fermer la popup
+                  },
+                  child: Text("Continuer"),
+                  style: TextButton.styleFrom(
+                    backgroundColor: Colors.green, // Bouton vert
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+                SizedBox(height: 10), // Espace entre les boutons
+                TextButton(
+                  onPressed: () {
+                    gameProvider.resetGame(); // Réinitialiser le jeu
+                    Navigator.of(context).pop(); // Fermer la popup
+                  },
+                  child: Text("Nouvelle Partie"),
+                  style: TextButton.styleFrom(
+                    backgroundColor: Colors.blue, // Bouton bleu
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+                SizedBox(height: 10), // Espace entre les boutons
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Fermer la popup
+                    Navigator.of(context).pop(); // Revenir au menu principal
+                  },
+                  child: Text("Menu Principal"),
+                  style: TextButton.styleFrom(
+                    backgroundColor: Colors.red, // Bouton rouge
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          ],
+          actionsAlignment: MainAxisAlignment.center,
+        );
+      },
+    );
+  }
+
+  // Méthode pour afficher la popup de défaite
+  void _showDefeatDialog(BuildContext context, GameProvider gameProvider) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Colors.black, // Fond noir
+          title: Center(
+            child: Text(
+              "Défaite !",
+              style: TextStyle(color: Colors.white), // Texte blanc
+            ),
+          ),
+          content: Text(
+            "Plus aucun mouvement n'est possible.",
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.white), // Texte blanc
+          ),
+          actionsAlignment: MainAxisAlignment.center,
+          actions: [
+            TextButton(
+              onPressed: () {
+                gameProvider.resetGame(); // Réinitialiser le jeu
+                Navigator.of(context).pop(); // Fermer la popup
+              },
+              child: Text("Nouvelle Partie"),
+              style: TextButton.styleFrom(
+                backgroundColor: Colors.green, // Bouton vert
+                foregroundColor: Colors.white,
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Fermer la popup
+                Navigator.of(context).pop(); // Revenir au menu principal
+              },
+              child: Text("Menu Principal"),
+              style: TextButton.styleFrom(
+                backgroundColor: Colors.red, // Bouton rouge
+                foregroundColor: Colors.white,
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
