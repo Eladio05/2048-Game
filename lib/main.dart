@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'game_page.dart';
+import 'game_provider.dart';
 
 void main() {
   runApp(MyApp());
@@ -22,24 +24,28 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFFFFB06B), // Couleur d'arrière-plan
+      backgroundColor: Color(0xFFFFB06B),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            // Logo au lieu du titre
             Image.asset(
               "assets/images/logo.png",
-              width: 150, // Taille du logo
+              width: 150,
               height: 150,
             ),
             SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
-                // Naviguer vers la page de jeu
+                // Naviguer vers GamePage avec un ChangeNotifierProvider pour le Provider
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => GamePage()),
+                  MaterialPageRoute(
+                    builder: (context) => ChangeNotifierProvider(
+                      create: (_) => GameProvider(),
+                      child: GamePage(),
+                    ),
+                  ),
                 );
               },
               child: Text(
@@ -47,7 +53,7 @@ class HomePage extends StatelessWidget {
                 style: TextStyle(fontSize: 18, color: Colors.white),
               ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Color(0xFF997C64), // Couleur du bouton
+                backgroundColor: Color(0xFF997C64),
                 padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
               ),
             ),
