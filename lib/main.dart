@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:audioplayers/audioplayers.dart'; // Import du package audioplayers
 import 'game_page.dart';
 import 'game_provider.dart';
 
@@ -20,7 +21,33 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
+  @override
+  _HomePageState createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  late AudioPlayer _audioPlayer;
+
+  @override
+  void initState() {
+    super.initState();
+    _audioPlayer = AudioPlayer();
+    _playBackgroundMusic();
+  }
+
+  @override
+  void dispose() {
+    _audioPlayer.dispose(); // Arrêter la musique lorsque l'utilisateur quitte l'écran d'accueil
+    super.dispose();
+  }
+
+  void _playBackgroundMusic() async {
+    await _audioPlayer.play(AssetSource('sounds/accueil.mp3'), volume: 0.5);
+    // Ajoute "ReleaseMode.loop" si tu veux que la musique se répète en boucle
+    await _audioPlayer.setReleaseMode(ReleaseMode.loop);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -37,6 +64,9 @@ class HomePage extends StatelessWidget {
             SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
+                // Arrêter la musique de l'écran d'accueil lorsqu'on commence une partie
+                _audioPlayer.stop();
+
                 // Naviguer vers GamePage avec un ChangeNotifierProvider pour le Provider
                 Navigator.push(
                   context,

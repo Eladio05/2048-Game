@@ -1,8 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:audioplayers/audioplayers.dart'; // Import du package audioplayers
 import 'game_provider.dart';
 
-class GamePage extends StatelessWidget {
+class GamePage extends StatefulWidget {
+  @override
+  _GamePageState createState() => _GamePageState();
+}
+
+class _GamePageState extends State<GamePage> {
+  late AudioPlayer _audioPlayer;
+
+  @override
+  void initState() {
+    super.initState();
+    _audioPlayer = AudioPlayer();
+    _playBackgroundMusic(); // Jouer la musique de fond au démarrage
+  }
+
+  @override
+  void dispose() {
+    _audioPlayer.dispose(); // Arrêter la musique lorsque la page est fermée
+    super.dispose();
+  }
+
+  void _playBackgroundMusic() async {
+    await _audioPlayer.play(AssetSource('sounds/2048.mp3'), volume: 0.5);
+    // Ajuste le volume si nécessaire (entre 0.0 et 1.0)
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
