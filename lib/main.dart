@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:audioplayers/audioplayers.dart'; // Import du package audioplayers
+import 'package:audioplayers/audioplayers.dart';
 import 'game_page.dart';
 import 'game_provider.dart';
 
