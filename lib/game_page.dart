@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:audioplayers/audioplayers.dart'; // Import du package audioplayers
+import 'package:audioplayers/audioplayers.dart';
 import 'game_provider.dart';
 
 class GamePage extends StatefulWidget {
@@ -15,43 +15,42 @@ class _GamePageState extends State<GamePage> {
   void initState() {
     super.initState();
     _audioPlayer = AudioPlayer();
-    _playBackgroundMusic(); // Jouer la musique de fond au démarrage
+    _playBackgroundMusic();
   }
 
   @override
   void dispose() {
-    _audioPlayer.dispose(); // Arrêter la musique lorsque la page est fermée
+    _audioPlayer.dispose();
     super.dispose();
   }
 
   void _playBackgroundMusic() async {
     await _audioPlayer.play(AssetSource('sounds/2048.mp3'), volume: 0.5);
-    // Ajuste le volume si nécessaire (entre 0.0 et 1.0)
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFFFFB06B),
+      backgroundColor: Color.fromARGB(255, 255, 176, 107),
       appBar: AppBar(
-        backgroundColor: Color(0xFFFFB06B),
+        backgroundColor: Color.fromARGB(255, 255, 176, 107),
         title: Text("Partie en cours"),
         actions: [
           IconButton(
             icon: Icon(Icons.star),
             onPressed: () {
-              Provider.of<GameProvider>(context, listen: false).simulateVictory();
+              Provider.of<GameProvider>(context, listen: false).simulerVictoire();
               Future.delayed(Duration.zero, () {
-                _showVictoryDialog(context, Provider.of<GameProvider>(context, listen: false));
+                _ecranVictoire(context, Provider.of<GameProvider>(context, listen: false));
               });
             },
           ),
           IconButton(
             icon: Icon(Icons.warning),
             onPressed: () {
-              Provider.of<GameProvider>(context, listen: false).simulateDefeat();
+              Provider.of<GameProvider>(context, listen: false).simulerDefaite();
               Future.delayed(Duration.zero, () {
-                _showDefeatDialog(context, Provider.of<GameProvider>(context, listen: false));
+                _ecranDefaite(context, Provider.of<GameProvider>(context, listen: false));
               });
             },
           ),
@@ -62,32 +61,32 @@ class _GamePageState extends State<GamePage> {
           Expanded(
             child: GestureDetector(
               onPanEnd: (details) {
-                final velocity = details.velocity.pixelsPerSecond;
-                final gameProvider = Provider.of<GameProvider>(context, listen: false);
+                final velocite = details.velocity.pixelsPerSecond;
+                final provider = Provider.of<GameProvider>(context, listen: false);
 
-                if (velocity.dx.abs() > velocity.dy.abs()) {
-                  if (velocity.dx > 0) {
-                    gameProvider.move('right');
+                if (velocite.dx.abs() > velocite.dy.abs()) {
+                  if (velocite.dx > 0) {
+                    provider.mouvement('droite');
                   } else {
-                    gameProvider.move('left');
+                    provider.mouvement('gauche');
                   }
                 } else {
-                  if (velocity.dy > 0) {
-                    gameProvider.move('down');
+                  if (velocite.dy > 0) {
+                    provider.mouvement('bas');
                   } else {
-                    gameProvider.move('up');
+                    provider.mouvement('haut');
                   }
                 }
 
-                if (gameProvider.hasWon) {
+                if (provider.victoire) {
                   Future.delayed(Duration.zero, () {
-                    _showVictoryDialog(context, gameProvider);
+                    _ecranVictoire(context, provider);
                   });
                 }
 
-                if (gameProvider.isGameOver) {
+                if (provider.jeuTermine) {
                   Future.delayed(Duration.zero, () {
-                    _showDefeatDialog(context, gameProvider);
+                    _ecranDefaite(context, provider);
                   });
                 }
               },
@@ -103,18 +102,18 @@ class _GamePageState extends State<GamePage> {
                     ),
                     itemCount: 16,
                     itemBuilder: (context, index) {
-                      int row = index ~/ 4;
-                      int col = index % 4;
-                      int value = gameProvider.board[row][col];
+                      int ligne = index ~/ 4;
+                      int colonne = index % 4;
+                      int val = gameProvider.tableau[ligne][colonne];
 
                       return Container(
                         decoration: BoxDecoration(
-                          color: _getTileColor(value),
+                          color: _couleurTuile(val),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Center(
                           child: Text(
-                            value == 0 ? '' : '$value',
+                            val == 0 ? '' : '$val',
                             style: TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
@@ -162,11 +161,11 @@ class _GamePageState extends State<GamePage> {
                   children: [
                     ElevatedButton(
                       onPressed: () {
-                        Provider.of<GameProvider>(context, listen: false).move('up');
+                        Provider.of<GameProvider>(context, listen: false).mouvement('haut');
                       },
                       child: Icon(Icons.arrow_upward),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Color(0xFF997C64),
+                        backgroundColor: Color.fromARGB(255, 153, 124, 100),
                       ),
                     ),
                   ],
@@ -176,21 +175,21 @@ class _GamePageState extends State<GamePage> {
                   children: [
                     ElevatedButton(
                       onPressed: () {
-                        Provider.of<GameProvider>(context, listen: false).move('left');
+                        Provider.of<GameProvider>(context, listen: false).mouvement('gauche');
                       },
                       child: Icon(Icons.arrow_back),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Color(0xFF997C64),
+                        backgroundColor: Color.fromARGB(255, 153, 124, 100),
                       ),
                     ),
                     SizedBox(width: 10),
                     ElevatedButton(
                       onPressed: () {
-                        Provider.of<GameProvider>(context, listen: false).move('right');
+                        Provider.of<GameProvider>(context, listen: false).mouvement('droite');
                       },
                       child: Icon(Icons.arrow_forward),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Color(0xFF997C64),
+                        backgroundColor: Color.fromARGB(255, 153, 124, 100),
                       ),
                     ),
                   ],
@@ -200,11 +199,11 @@ class _GamePageState extends State<GamePage> {
                   children: [
                     ElevatedButton(
                       onPressed: () {
-                        Provider.of<GameProvider>(context, listen: false).move('down');
+                        Provider.of<GameProvider>(context, listen: false).mouvement('bas');
                       },
                       child: Icon(Icons.arrow_downward),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Color(0xFF997C64),
+                        backgroundColor: Color.fromARGB(255, 153, 124, 100),
                       ),
                     ),
                   ],
@@ -215,10 +214,10 @@ class _GamePageState extends State<GamePage> {
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: ElevatedButton(
-              onPressed: () => Provider.of<GameProvider>(context, listen: false).resetGame(),
+              onPressed: () => Provider.of<GameProvider>(context, listen: false).reset(),
               child: Text("Nouvelle Partie"),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Color(0xFF997C64),
+                backgroundColor: Color.fromARGB(255, 153, 124, 100),
                 padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
               ),
             ),
@@ -229,23 +228,22 @@ class _GamePageState extends State<GamePage> {
     );
   }
 
-  // Méthode pour afficher la popup de victoire
-  void _showVictoryDialog(BuildContext context, GameProvider gameProvider) {
+  void _ecranVictoire(BuildContext context, GameProvider gameProvider) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          backgroundColor: Colors.black, // Fond noir
+          backgroundColor: Colors.black,
           title: Center(
             child: Text(
               "Victoire !",
-              style: TextStyle(color: Colors.white), // Texte blanc
+              style: TextStyle(color: Colors.white),
             ),
           ),
           content: Text(
             "Votre score a atteint 2048 !",
             textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.white), // Texte blanc
+            style: TextStyle(color: Colors.white),
           ),
           actions: [
             Column(
@@ -253,36 +251,36 @@ class _GamePageState extends State<GamePage> {
               children: [
                 TextButton(
                   onPressed: () {
-                    gameProvider.continueGame(); // Continuer la partie
-                    Navigator.of(context).pop(); // Fermer la popup
+                    gameProvider.continueJeu();
+                    Navigator.of(context).pop();
                   },
                   child: Text("Continuer"),
                   style: TextButton.styleFrom(
-                    backgroundColor: Colors.green, // Bouton vert
+                    backgroundColor: Colors.green,
                     foregroundColor: Colors.white,
                   ),
                 ),
-                SizedBox(height: 10), // Espace entre les boutons
+                SizedBox(height: 10),
                 TextButton(
                   onPressed: () {
-                    gameProvider.resetGame(); // Réinitialiser le jeu
-                    Navigator.of(context).pop(); // Fermer la popup
+                    gameProvider.reset();
+                    Navigator.of(context).pop();
                   },
                   child: Text("Nouvelle Partie"),
                   style: TextButton.styleFrom(
-                    backgroundColor: Colors.blue, // Bouton bleu
+                    backgroundColor: Colors.blue,
                     foregroundColor: Colors.white,
                   ),
                 ),
-                SizedBox(height: 10), // Espace entre les boutons
+                SizedBox(height: 10),
                 TextButton(
                   onPressed: () {
-                    Navigator.of(context).pop(); // Fermer la popup
-                    Navigator.of(context).pop(); // Revenir au menu principal
+                    Navigator.of(context).pop();
+                    Navigator.of(context).pop();
                   },
                   child: Text("Menu Principal"),
                   style: TextButton.styleFrom(
-                    backgroundColor: Colors.red, // Bouton rouge
+                    backgroundColor: Colors.red,
                     foregroundColor: Colors.white,
                   ),
                 ),
@@ -295,45 +293,44 @@ class _GamePageState extends State<GamePage> {
     );
   }
 
-  // Méthode pour afficher la popup de défaite
-  void _showDefeatDialog(BuildContext context, GameProvider gameProvider) {
+  void _ecranDefaite(BuildContext context, GameProvider gameProvider) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          backgroundColor: Colors.black, // Fond noir
+          backgroundColor: Colors.black,
           title: Center(
             child: Text(
               "Défaite !",
-              style: TextStyle(color: Colors.white), // Texte blanc
+              style: TextStyle(color: Colors.white),
             ),
           ),
           content: Text(
             "Plus aucun mouvement n'est possible.",
             textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.white), // Texte blanc
+            style: TextStyle(color: Colors.white),
           ),
           actionsAlignment: MainAxisAlignment.center,
           actions: [
             TextButton(
               onPressed: () {
-                gameProvider.resetGame(); // Réinitialiser le jeu
-                Navigator.of(context).pop(); // Fermer la popup
+                gameProvider.reset();
+                Navigator.of(context).pop();
               },
               child: Text("Nouvelle Partie"),
               style: TextButton.styleFrom(
-                backgroundColor: Colors.green, // Bouton vert
+                backgroundColor: Colors.green,
                 foregroundColor: Colors.white,
               ),
             ),
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop(); // Fermer la popup
-                Navigator.of(context).pop(); // Revenir au menu principal
+                Navigator.of(context).pop();
+                Navigator.of(context).pop();
               },
               child: Text("Menu Principal"),
               style: TextButton.styleFrom(
-                backgroundColor: Colors.red, // Bouton rouge
+                backgroundColor: Colors.red,
                 foregroundColor: Colors.white,
               ),
             ),
@@ -343,33 +340,32 @@ class _GamePageState extends State<GamePage> {
     );
   }
 
-  // Méthode pour définir la couleur de la tuile en fonction de sa valeur
-  Color _getTileColor(int value) {
+  Color _couleurTuile(int value) {
     switch (value) {
       case 2:
-        return Colors.orange[200]!;
+        return Colors.orange[100]!;
       case 4:
         return Colors.orange[300]!;
       case 8:
-        return Colors.orange[400]!;
-      case 16:
         return Colors.orange[500]!;
-      case 32:
-        return Colors.orange[600]!;
-      case 64:
+      case 16:
         return Colors.orange[700]!;
-      case 128:
+      case 32:
         return Colors.orange[800]!;
+      case 64:
+        return Colors.red[400]!;
+      case 128:
+        return Colors.red[500]!;
       case 256:
-        return Colors.orange[900]!;
+        return Colors.red[600]!;
       case 512:
-        return Colors.deepOrange[500]!;
+        return Colors.red[700]!;
       case 1024:
-        return Colors.deepOrange[600]!;
+        return Colors.red[800]!;
       case 2048:
-        return Colors.deepOrange[700]!;
+        return Colors.red[900]!;
       default:
-        return Colors.grey[300]!;
+        return Colors.grey;
     }
   }
 }

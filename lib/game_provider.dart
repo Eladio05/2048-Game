@@ -3,28 +3,22 @@ import 'game.dart';
 
 class GameProvider with ChangeNotifier {
   Game _game = Game();
-  bool _hasWon = false;
-
-  List<List<int>> get board => _game.board;
+  bool _victoire = false;
+  List<List<int>> get tableau => _game.grille;
   int get score => _game.score;
-  bool get hasWon => _hasWon;
+  bool get victoire => _victoire;
+  bool get jeuTermine => _game.partieTermine();
 
-  // Getter pour vérifier si le jeu est terminé
-  bool get isGameOver => _game.isGameOver();
-
-  // Gérer les mouvements
-  void move(String direction) {
-    _game.move(direction);
-    if (!_hasWon) { // Vérifier la victoire uniquement si la popup n'a pas déjà été affichée
-      checkVictory();
+  void mouvement(String direction) {
+    _game.mouvement(direction);
+    if (!_victoire) {
+      verifVictoire();
     }
     notifyListeners();
   }
 
-  // Simuler une grille perdante
-  void simulateDefeat() {
-    // Remplir la grille avec des valeurs où aucun déplacement ou fusion n'est possible
-    _game.board = [
+  void simulerDefaite() {
+    _game.grille = [
       [2, 4, 2, 4],
       [4, 2, 4, 2],
       [2, 4, 2, 4],
@@ -33,31 +27,27 @@ class GameProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  // Simuler une victoire avec un score de 2048
-  void simulateVictory() {
-    _game.score = 2048; // Définir le score à 2048 ou plus
-    _hasWon = true;
+  void simulerVictoire() {
+    _game.score = 2048;
+    _victoire = true;
     notifyListeners();
   }
 
-  // Réinitialiser le jeu
-  void resetGame() {
+  void reset() {
     _game = Game();
-    _hasWon = false;
+    _victoire = false;
     notifyListeners();
   }
 
-  // Vérifier la victoire lorsque le score atteint 2048
-  void checkVictory() {
-    if (_game.score >= 2048 && !_hasWon) {
-      _hasWon = true;
-      notifyListeners(); // Notifier les widgets qu'il y a une victoire
+  void verifVictoire() {
+    if (_game.score >= 2048 && !_victoire) {
+      _victoire = true;
+      notifyListeners();
     }
   }
 
-  // Continuer le jeu après une victoire
-  void continueGame() {
-    _hasWon = false; // Réinitialiser la victoire pour ne plus afficher la popup
+  void continueJeu() {
+    _victoire = false;
     notifyListeners();
   }
 }

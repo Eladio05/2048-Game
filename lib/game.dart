@@ -1,159 +1,165 @@
 import 'dart:math';
 
 class Game {
-  late List<List<int>> board;
+  late List<List<int>> grille;
   int score;
 
   Game() : score = 0 {
-    // Initialisation de la grille 4x4 avec des zéros
-    board = List.generate(4, (_) => List.generate(4, (_) => 0));
-    _addNewTile();
-    _addNewTile();
+    grille = List.generate(4, (_) => List.generate(4, (_) => 0));
+    _ajouterTuile();
+    _ajouterTuile();
   }
 
-  // Ajouter une nouvelle tuile avec une valeur de 2 ou 4
-  void _addNewTile() {
-    List<int> emptyTiles = [];
-    for (int row = 0; row < 4; row++) {
-      for (int col = 0; col < 4; col++) {
-        if (board[row][col] == 0) {
-          emptyTiles.add(row * 4 + col); // Convertir en index 1D
+  void _ajouterTuile() {
+    List<int> tuileVide = [];
+    for (int ligne = 0; ligne < 4; ligne++) {
+      for (int colonne = 0; colonne < 4; colonne++) {
+        if (grille[ligne][colonne] == 0) {
+          tuileVide.add(ligne * 4 + colonne);
         }
       }
     }
 
-    if (emptyTiles.isNotEmpty) {
-      int randomIndex = emptyTiles[Random().nextInt(emptyTiles.length)];
-      int newValue = Random().nextInt(10) < 9 ? 2 : 4; // 90% de chances d'obtenir un 2, 10% un 4
-      board[randomIndex ~/ 4][randomIndex % 4] = newValue;
+    if (tuileVide.isNotEmpty) {
+      int randomIndex = tuileVide[Random().nextInt(tuileVide.length)];
+      int newValue = 2;
+      grille[randomIndex ~/ 4][randomIndex % 4] = newValue;
     }
   }
 
-  // Déplacer les tuiles dans une direction (haut, bas, gauche, droite)
-  bool move(String direction) {
-    bool moved = false;
+
+  bool mouvement(String direction) {
+    bool mouv = false;
     switch (direction) {
-      case 'up':
-        moved = _moveUp();
+      case 'haut':
+        mouv = _haut();
         break;
-      case 'down':
-        moved = _moveDown();
+      case 'bas':
+        mouv = _bas();
         break;
-      case 'left':
-        moved = _moveLeft();
+      case 'gauche':
+        mouv = _gauche();
         break;
-      case 'right':
-        moved = _moveRight();
+      case 'droite':
+        mouv = _droite();
         break;
     }
-    if (moved) {
-      _addNewTile(); // Ajouter une nouvelle tuile après un déplacement valide
+    if (mouv) {
+      _ajouterTuile();
     }
-    return moved;
+    return mouv;
   }
 
-  // Déplacement des tuiles vers le haut
-  bool _moveUp() {
-    bool moved = false;
-    for (int col = 0; col < 4; col++) {
-      List<int> column = [];
-      for (int row = 0; row < 4; row++) {
-        if (board[row][col] != 0) column.add(board[row][col]);
+  bool _haut() {
+    bool mouvement = false;
+    for (int colonne = 0; colonne < 4; colonne++) {
+      List<int> col = [];
+      for (int ligne = 0; ligne < 4; ligne++) {
+        if (grille[ligne][colonne] != 0) col.add(grille[ligne][colonne]);
       }
-      List<int> merged = _merge(column);
-      for (int row = 0; row < 4; row++) {
-        int value = row < merged.length ? merged[row] : 0;
-        if (board[row][col] != value) {
-          board[row][col] = value;
-          moved = true;
+      List<int> fusionne = _fusion(col);
+      for (int ligne = 0; ligne < 4; ligne++) {
+        int val = ligne < fusionne.length ? fusionne[ligne] : 0;
+        if (grille[ligne][colonne] != val) {
+          grille[ligne][colonne] = val;
+          mouvement = true;
         }
       }
     }
-    return moved;
+    return mouvement;
   }
 
-  // Autres déplacements (droite, gauche, bas)
-  bool _moveDown() {
-    bool moved = false;
-    for (int col = 0; col < 4; col++) {
-      List<int> column = [];
-      for (int row = 3; row >= 0; row--) {
-        if (board[row][col] != 0) column.add(board[row][col]);
+  bool _bas() {
+    bool mouvement = false;
+    for (int colonne = 0; colonne < 4; colonne++) {
+      List<int> col = [];
+      for (int ligne = 3; ligne >= 0; ligne--) {
+        if (grille[ligne][colonne] != 0) col.add(grille[ligne][colonne]);
       }
-      List<int> merged = _merge(column);
-      for (int row = 3; row >= 0; row--) {
-        int value = 3 - row < merged.length ? merged[3 - row] : 0;
-        if (board[row][col] != value) {
-          board[row][col] = value;
-          moved = true;
+      List<int> fusionne = _fusion(col);
+      for (int ligne = 3; ligne >= 0; ligne--) {
+        int val = 3 - ligne < fusionne.length ? fusionne[3 - ligne] : 0;
+        if (grille[ligne][colonne] != val) {
+          grille[ligne][colonne] = val;
+          mouvement = true;
         }
       }
     }
-    return moved;
+    return mouvement;
   }
 
-  bool _moveLeft() {
-    bool moved = false;
-    for (int row = 0; row < 4; row++) {
+  bool _gauche() {
+    bool mouvement = false;
+    for (int ligne = 0; ligne < 4; ligne++) {
       List<int> line = [];
-      for (int col = 0; col < 4; col++) {
-        if (board[row][col] != 0) line.add(board[row][col]);
+      for (int colonne = 0; colonne < 4; colonne++) {
+        if (grille[ligne][colonne] != 0) {
+          line.add(grille[ligne][colonne]);
+        }
       }
-      List<int> merged = _merge(line);
-      for (int col = 0; col < 4; col++) {
-        int value = col < merged.length ? merged[col] : 0;
-        if (board[row][col] != value) {
-          board[row][col] = value;
-          moved = true;
+      List<int> fusionne = _fusion(line);
+      for (int colonne = 0; colonne < 4; colonne++) {
+        int val = colonne < fusionne.length ? fusionne[colonne] : 0;
+        if (grille[ligne][colonne] != val) {
+          grille[ligne][colonne] = val;
+          mouvement = true;
         }
       }
     }
-    return moved;
+    return mouvement;
   }
 
-  bool _moveRight() {
-    bool moved = false;
-    for (int row = 0; row < 4; row++) {
+  bool _droite() {
+    bool mouvement = false;
+    for (int ligne = 0; ligne < 4; ligne++) {
       List<int> line = [];
-      for (int col = 3; col >= 0; col--) {
-        if (board[row][col] != 0) line.add(board[row][col]);
+      for (int colonne = 3; colonne >= 0; colonne--) {
+        if (grille[ligne][colonne] != 0){
+          line.add(grille[ligne][colonne]);
+        }
       }
-      List<int> merged = _merge(line);
-      for (int col = 3; col >= 0; col--) {
-        int value = 3 - col < merged.length ? merged[3 - col] : 0;
-        if (board[row][col] != value) {
-          board[row][col] = value;
-          moved = true;
+      List<int> fusionne = _fusion(line);
+      for (int colonne = 3; colonne >= 0; colonne--) {
+        int val = 3 - colonne < fusionne.length ? fusionne[3 - colonne] : 0;
+        if (grille[ligne][colonne] != val) {
+          grille[ligne][colonne] = val;
+          mouvement = true;
         }
       }
     }
-    return moved;
+    return mouvement;
   }
 
-  // Fusionner les tuiles similaires
-  List<int> _merge(List<int> tiles) {
-    List<int> merged = [];
+  List<int> _fusion(List<int> tuiles) {
+    List<int> grilleFusionne = [];
     int skip = -1;
-    for (int i = 0; i < tiles.length; i++) {
-      if (i == skip) continue;
-      if (i < tiles.length - 1 && tiles[i] == tiles[i + 1]) {
-        merged.add(tiles[i] * 2);
-        score += tiles[i] * 2;
+    for (int i = 0; i < tuiles.length; i++) {
+      if (i == skip){
+        continue;
+      }
+      if (i < tuiles.length - 1 && tuiles[i] == tuiles[i + 1]) {
+        grilleFusionne.add(tuiles[i] * 2);
+        score += tuiles[i] * 2;
         skip = i + 1;
       } else {
-        merged.add(tiles[i]);
+        grilleFusionne.add(tuiles[i]);
       }
     }
-    return merged;
+    return grilleFusionne;
   }
 
-  // Vérifier si le jeu est terminé
-  bool isGameOver() {
-    for (int row = 0; row < 4; row++) {
-      for (int col = 0; col < 4; col++) {
-        if (board[row][col] == 0) return false; // Case vide
-        if (row > 0 && board[row][col] == board[row - 1][col]) return false; // Tuile fusionnable vers le haut
-        if (col > 0 && board[row][col] == board[row][col - 1]) return false; // Tuile fusionnable vers la gauche
+  bool partieTermine() {
+    for (int ligne = 0; ligne < 4; ligne++) {
+      for (int colonne = 0; colonne < 4; colonne++) {
+        if (grille[ligne][colonne] == 0){
+          return false;
+        }
+        if (ligne > 0 && grille[ligne][colonne] == grille[ligne - 1][colonne]){
+          return false;
+        }
+        if (colonne > 0 && grille[ligne][colonne] == grille[ligne][colonne - 1]){
+          return false;
+        }
       }
     }
     return true;

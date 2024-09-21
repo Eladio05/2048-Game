@@ -38,20 +38,19 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void dispose() {
-    _audioPlayer.dispose(); // Arrêter la musique lorsque l'utilisateur quitte l'écran d'accueil
+    _audioPlayer.dispose();
     super.dispose();
   }
 
   void _playBackgroundMusic() async {
     await _audioPlayer.play(AssetSource('sounds/accueil.mp3'), volume: 0.5);
-    // Ajoute "ReleaseMode.loop" si tu veux que la musique se répète en boucle
     await _audioPlayer.setReleaseMode(ReleaseMode.loop);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFFFFB06B),
+      backgroundColor: Color.fromARGB(255, 255, 176, 107),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -64,10 +63,7 @@ class _HomePageState extends State<HomePage> {
             SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
-                // Arrêter la musique de l'écran d'accueil lorsqu'on commence une partie
                 _audioPlayer.stop();
-
-                // Naviguer vers GamePage avec un ChangeNotifierProvider pour le Provider
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -83,7 +79,7 @@ class _HomePageState extends State<HomePage> {
                 style: TextStyle(fontSize: 18, color: Colors.white),
               ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Color(0xFF997C64),
+                backgroundColor: Color.fromARGB(255, 153, 124, 100),
                 padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
               ),
             ),
